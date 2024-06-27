@@ -5,6 +5,15 @@ from pathlib import Path
 import ast
 
 
+def get_node_with_error(tree, line_number):
+    for node in tree:
+        if node.lineno - 1 <= line_number - 1 <= node.end_lineno - 1:
+            if isinstance(node, ast.ClassDef):
+                if child_node := get_node_with_error(node.body, line_number):
+                    return child_node
+            return node
+
+
 def get_errors_from_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         file_content = f.read()
@@ -27,11 +36,10 @@ def get_errors_from_file(file_path):
         line_number, char_number = int(line_number), int(char_number)
         if file_content_lines[line_number-1].strip().startswith('#'):
             continue
-        for node in tree:
-            if node.lineno - 1 < line_number - 1 < node.end_lineno - 1:
-                print(line_number-node.lineno+1, char_number, error_msg)
-                print('\n'.join(file_content_lines[node.lineno-1:node.end_lineno]))
-                print('\n\n##########################################################\n\n')
+        if node := get_node_with_error(tree, line_number):
+            print(line_number-node.lineno+1, char_number, error_msg)
+            print('\n'.join(file_content_lines[node.lineno-1:node.end_lineno]))
+            print('\n\n##########################################################\n\n')
 
 
 if __name__ == '__main__':
