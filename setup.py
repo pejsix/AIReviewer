@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     package_data={'': ['res/*.exe']},
 
-    install_requires=['openai', 'pylint'],
+    install_requires=['openai', 'pylint', 'ast'],
     extras_require={'test': ['pytest-runner', 'pytest', 'TestConfiguration', 'pytest-cov']},
     zip_safe=True,
     test_suite="tests",
