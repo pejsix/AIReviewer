@@ -18,8 +18,9 @@ class ErrorsSolver:
                                "ERROR MESSAGE: {3}")
 
     def __init__(self):
-        self.openai_api_key = self.get_openai_api_key()
-        os.environ["OPENAI_API_KEY"] = self.openai_api_key
+        if "OPENAI_API_KEY" not in os.environ:
+            self.openai_api_key = self.get_openai_api_key()
+            os.environ["OPENAI_API_KEY"] = self.openai_api_key
         self.client = openai.Client(api_key=os.getenv("OPENAI_API_KEY"))
     
     def get_openai_api_key(self):
