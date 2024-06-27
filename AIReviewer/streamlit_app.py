@@ -5,7 +5,7 @@ from AIReviewer.openai_interface import ErrorsSolver
 import os
 
 
-SOURCE_DIR = r"C:\Progs\ODBBrowser\v.5.18.6\bin\presentation"
+SOURCE_DIR = os.getenv("SOURCE_DIR_CONFIG_FILE_PATH")
 
 
 # Function to list all Python files in the current directory

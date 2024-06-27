@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     package_data={'': ['res/*.exe']},
 
-    install_requires=['openai', 'pylint', 'ast', 'streamlit', 'streamlit-ace'],
+    install_requires=['openai', 'pylint', 'streamlit', 'streamlit-ace'],
     extras_require={'test': ['pytest-runner', 'pytest', 'TestConfiguration', 'pytest-cov']},
     zip_safe=True,
     test_suite="tests",
