@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from ODBcf import __version__
+from AIReviewer import __version__
 
 setup(
     name='AIReviewer',
