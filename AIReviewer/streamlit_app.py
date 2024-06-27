@@ -58,7 +58,7 @@ underline_js = """
 def main():
     st.set_page_config(layout="wide")  # Set the layout to wide
 
-    st.title("Python Code Viewer")
+    st.sidebar.title("Python Code Viewer")
 
     # Sidebar for file selection
     st.sidebar.header("Select a Python file")
@@ -82,7 +82,7 @@ def main():
                 solver = ErrorsSolver()
                 correction = solver.get_error_correction(code_block, line_number, char_number, error_msg)
                 st.sidebar.subheader(error_msg)
-                st.sidebar.subheader(correction)
+                st.sidebar.code(correction, language='python')
 
             # Ace editor for displaying the file content with syntax highlighting
             st.subheader("Source Code")
