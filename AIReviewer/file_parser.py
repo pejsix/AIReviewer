@@ -1,17 +1,36 @@
 from pylint import lint
 from pylint.reporters.text import TextReporter
 from io import StringIO
-from pathlib import Path
 import ast
 
 from AIReviewer.openai_interface import ErrorsDetector
 
 
 class FileParser:
+    """
+    A class to parse Python files and detect errors using various algorithms.
+    """
+
     def __init__(self, file_path):
+        """
+        Initializes the FileParser with the path of the file to be analyzed.
+
+        Parameters:
+        file_path (str): Path to the Python file to be parsed.
+        """
         self.file_path = file_path
 
     def get_node_with_error(self, tree, line_number):
+        """
+        Finds and returns the AST node containing the error based on the line number.
+
+        Parameters:
+        tree (list): List of AST nodes parsed from the file content.
+        line_number (int): Line number where the error is located.
+
+        Returns:
+        ast.AST: The AST node that contains the specified line number.
+        """
         for node in tree:
             if node.lineno - 1 <= line_number - 1 <= node.end_lineno - 1:
                 if isinstance(node, ast.ClassDef):
@@ -20,12 +39,28 @@ class FileParser:
                 return node
 
     def get_errors_from_file(self, selected_algorithm):
+        """
+        Detects and returns errors from the file using the specified algorithm.
+
+        Parameters:
+        selected_algorithm (str): The algorithm to use for error detection. Options are 'PyLint' or 'OpenAI'.
+
+        Returns:
+        dict: A dictionary where keys are line numbers and values are tuples containing error details.
+        """
         if selected_algorithm == 'PyLint':
             return self.get_errors_from_file_pylint()
         elif selected_algorithm == 'OpenAI':
             return self.get_errors_from_file_openai()
 
     def get_errors_from_file_pylint(self):
+        """
+        Detects and returns errors from the file using PyLint.
+
+        Returns:
+        dict: A dictionary where keys are line numbers and values are tuples containing:
+              (code_block, line_number, char_number, error_msg, start_line, end_line).
+        """
         with open(self.file_path, 'r', encoding='utf-8') as f:
             file_content = f.read()
             file_content_lines = file_content.splitlines()
@@ -50,11 +85,19 @@ class FileParser:
             if node := self.get_node_with_error(tree, line_number):
                 code_block = '\n'.join(file_content_lines[node.lineno - 1:node.end_lineno])
                 line_numbers[line_number] = (
-                code_block, line_number, char_number, error_msg, node.lineno - 1, node.end_lineno - 1)
+                    code_block, line_number, char_number, error_msg, node.lineno - 1, node.end_lineno - 1
+                )
 
         return line_numbers
 
     def get_errors_from_file_openai(self):
+        """
+        Detects and returns errors from the file using OpenAI's error detection.
+
+        Returns:
+        dict: A dictionary where keys are line numbers and values are tuples containing:
+              (code_block, line_number, char_number, error_msg).
+        """
         with open(self.file_path, 'r', encoding='utf-8') as f:
             file_content = f.read()
             file_content_lines = file_content.splitlines()
