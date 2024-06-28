@@ -74,58 +74,39 @@ def main():
     st.sidebar.title("Python Code Viewer")
 
     # Sidebar for file selection
-    st.sidebar.header("Select a Python file")
     files = list_files()
+    selected_file = st.sidebar.selectbox("Choose a file", files, key="file_selector")
 
-    if files:
-        selected_file = st.sidebar.selectbox("Choose a file", files, key="file_selector")
-        if selected_file:
-            st.sidebar.write(f"Selected file: {selected_file}")
+    algorithms = ['PyLint', 'OpenAI']
+    selected_algorithm = st.sidebar.selectbox("Choose a method to get errors", algorithms)
 
             # Read and display the content of the selected file
             file_content = read_file(selected_file)
             # Include JavaScript with the appropriate line number
             # st.components.v1.html(underline_js.replace("{line_number}", str(line_number)).replace("{selected_file}", selected_file), height=0)
 
-            file_path = os.path.join(SOURCE_DIR, selected_file)
-            file_parser = FileParser(file_path)
+            file_parser = FileParser(os.path.join(SOURCE_DIR, selected_file))
             line_numbers = file_parser.get_errors_from_file()
             selected_error = st.sidebar.selectbox("Choose a error", line_numbers.keys())
             if selected_error:
-                code_block, line_number, char_number, error_msg, block_start_index, block_end_index = line_numbers[selected_error]
+                code_block, line_number, char_number, error_msg = line_numbers[selected_error]
                 solver = ErrorsSolver()
                 correction = solver.get_error_correction(code_block, line_number, char_number, error_msg)
                 st.sidebar.subheader(error_msg)
                 st.sidebar.code(correction, language='python')
-                # Button for applying the proposed changes.
-                sidebar_button = st.sidebar.button("Apply change", key="apply_change")
-                if sidebar_button:
-                    apply_change_to_file(file_path, block_start_index, block_end_index, correction)
-                    print(file_path)
-                    print(block_start_index)
-                    print(block_end_index)
-                    print(code_block)
-                    st.experimental_rerun()
-                
 
-            # Ace editor for displaying the file content with syntax highlighting
-            st.subheader("Source Code")
-            st_ace(
-                value=file_content,
-                language='python',
-                theme='monokai',
-                readonly=False,
-                height=1000,
-                key=f'ace-editor-{selected_file}',  # Ensure unique key per file
-                annotations=[{
-                    "row": 0,
-                    "column": 0,
-                    "type": "underline",
-                    "text": "This line is underlined"
-                }]
-            )
-    else:
-        st.sidebar.write("No Python files found in the current directory.")
+    # Ace editor for displaying the file content with syntax highlighting
+    st.subheader("Source Code")
+    st_ace(
+        value=file_content,
+        language='python',
+        theme='monokai',
+        readonly=False,
+        height=1000,
+        key=f'ace-editor-{selected_file}',  # Ensure unique key per file
+        # annotations=[{"row": line_number-1, "column": char_number, "type": "underline", "text": error_msg} for
+        #            _, line_number, char_number, error_msg in st.session_state.line_numbers.values()]
+    )
 
 
 if __name__ == "__main__":
