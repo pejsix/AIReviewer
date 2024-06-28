@@ -49,27 +49,7 @@ class FileParser:
                 continue
             if node := self.get_node_with_error(tree, line_number):
                 code_block = '\n'.join(file_content_lines[node.lineno-1:node.end_lineno])
-            line_numbers[line_number] = (code_block, line_number, char_number, error_msg)
-
-        return line_numbers
-
-    def get_errors_from_file_openai(self):
-        with open(self.file_path, 'r', encoding='utf-8') as f:
-            file_content = f.read()
-            file_content_lines = file_content.splitlines()
-
-        tree = [node for node in ast.walk(ast.parse(file_content)) if hasattr(node, 'lineno')]
-
-        line_numbers = {}
-        detected_errors = ErrorsDetector().get_error_detection(file_content).splitlines()
-        for error in detected_errors:
-            line_number, error_msg = error.split(' ', maxsplit=1)
-            line_number, char_number = int(line_number), 0
-            if file_content_lines[line_number-1].strip().startswith('#'):
-                continue
-            if node := self.get_node_with_error(tree, line_number):
-                code_block = '\n'.join(file_content_lines[node.lineno-1:node.end_lineno])
-                line_numbers[line_number] = (code_block, line_number, char_number, error_msg)
+                line_numbers[line_number] = (code_block, line_number, char_number, error_msg, node.lineno-1, node.end_lineno-1)
 
         return line_numbers
 

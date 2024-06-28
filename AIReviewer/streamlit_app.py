@@ -31,7 +31,6 @@ def apply_change_to_file(selected_file, line_index_start, line_index_end, new_bl
         with open(selected_file, 'w', encoding='utf-8') as file:
             file.writelines('\n'.join(updated_lines) + '\n')
 
-
 # JavaScript code to add the underline marker
 underline_js = """
 <script>
@@ -80,20 +79,35 @@ def main():
     algorithms = ['PyLint', 'OpenAI']
     selected_algorithm = st.sidebar.selectbox("Choose a method to get errors", algorithms)
 
-            # Read and display the content of the selected file
-            file_content = read_file(selected_file)
-            # Include JavaScript with the appropriate line number
-            # st.components.v1.html(underline_js.replace("{line_number}", str(line_number)).replace("{selected_file}", selected_file), height=0)
+    # Read and display the content of the selected file
+    file_content = read_file(selected_file)
+    file_parser = FileParser(os.path.join(SOURCE_DIR, selected_file))
+    if "selected_algorithm" not in st.session_state or selected_algorithm != st.session_state.selected_algorithm or \
+            "selected_file" not in st.session_state or selected_file != st.session_state.selected_file:
+        st.session_state.selected_algorithm = selected_algorithm
+        st.session_state.selected_file = selected_file
+        st.session_state.line_numbers = file_parser.get_errors_from_file(selected_algorithm)
 
-            file_parser = FileParser(os.path.join(SOURCE_DIR, selected_file))
-            line_numbers = file_parser.get_errors_from_file()
-            selected_error = st.sidebar.selectbox("Choose a error", line_numbers.keys())
-            if selected_error:
-                code_block, line_number, char_number, error_msg = line_numbers[selected_error]
-                solver = ErrorsSolver()
-                correction = solver.get_error_correction(code_block, line_number, char_number, error_msg)
-                st.sidebar.subheader(error_msg)
-                st.sidebar.code(correction, language='python')
+    selected_error = st.sidebar.selectbox("Choose a error", st.session_state.line_numbers.keys())
+
+    code_block, line_number, char_number, error_msg, block_line_start, block_line_end = st.session_state.line_numbers[selected_error]
+
+    if "selected_algorithm" not in st.session_state or selected_algorithm != st.session_state.selected_algorithm or \
+            "selected_file" not in st.session_state or selected_file != st.session_state.selected_file or \
+            "selected_error" not in st.session_state or selected_error != st.session_state.selected_error:
+        st.session_state.selected_error = selected_error
+        solver = ErrorsSolver()
+        st.session_state.correction = solver.get_error_correction(code_block, line_number, char_number, error_msg)
+
+    st.sidebar.subheader("Found error")
+    st.sidebar.text(error_msg)
+    st.sidebar.subheader("Fixes Code")
+    st.sidebar.code(st.session_state.correction, language='python')
+    apply_change = st.sidebar.button("Apply change", key="apply_change")
+    if apply_change:
+        selected_file_path = os.path.join(SOURCE_DIR, selected_file)
+        apply_change_to_file(selected_file_path, block_line_start, block_line_end, st.session_state.correction)
+        st.rerun()
 
     # Ace editor for displaying the file content with syntax highlighting
     st.subheader("Source Code")
