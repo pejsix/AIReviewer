@@ -45,11 +45,12 @@ class FileParser:
             file_name, error_msg = error.split(' ', maxsplit=1)
             file_name, line_number, char_number = file_name.strip(':').rsplit(':', maxsplit=2)
             line_number, char_number = int(line_number), int(char_number)
-            if file_content_lines[line_number-1].strip().startswith('#'):
+            if file_content_lines[line_number - 1].strip().startswith('#'):
                 continue
             if node := self.get_node_with_error(tree, line_number):
-                code_block = '\n'.join(file_content_lines[node.lineno-1:node.end_lineno])
-                line_numbers[line_number] = (code_block, line_number, char_number, error_msg, node.lineno-1, node.end_lineno-1)
+                code_block = '\n'.join(file_content_lines[node.lineno - 1:node.end_lineno])
+                line_numbers[line_number] = (
+                code_block, line_number, char_number, error_msg, node.lineno - 1, node.end_lineno - 1)
 
         return line_numbers
 
@@ -65,10 +66,10 @@ class FileParser:
         for error in detected_errors:
             line_number, error_msg = error.split(' ', maxsplit=1)
             line_number, char_number = int(line_number), 0
-            if file_content_lines[line_number-1].strip().startswith('#'):
+            if file_content_lines[line_number - 1].strip().startswith('#'):
                 continue
             if node := self.get_node_with_error(tree, line_number):
-                code_block = '\n'.join(file_content_lines[node.lineno-1:node.end_lineno])
+                code_block = '\n'.join(file_content_lines[node.lineno - 1:node.end_lineno])
                 line_numbers[line_number] = (code_block, line_number, char_number, error_msg)
 
         return line_numbers
