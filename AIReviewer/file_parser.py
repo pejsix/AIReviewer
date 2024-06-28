@@ -113,7 +113,8 @@ class FileParser:
                 continue
             if node := self.get_node_with_error(tree, line_number):
                 code_block = '\n'.join(file_content_lines[node.lineno - 1:node.end_lineno])
-                line_numbers[line_number] = (code_block, line_number, char_number, error_msg)
+                line_numbers[line_number] = (
+                code_block, line_number, char_number, error_msg, node.lineno - 1, node.end_lineno - 1)
 
         return line_numbers
 
