@@ -18,6 +18,19 @@ def read_file(file_path):
     with open(os.path.join(SOURCE_DIR, file_path), 'r', encoding='utf-8') as file:
         return file.read()
 
+# Take a file and replace the block with an error with a new block with error removed.
+def apply_change_to_file(selected_file, line_index_start, line_index_end, new_block):
+    with open(selected_file, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        lines = [line.rstrip('\n') for line in lines]
+        # Split the new block into lines
+        new_lines = new_block.split('\n')
+        # Replace the old block with the new block
+        updated_lines = lines[:line_index_start] + new_lines + lines[line_index_end + 1:]
+        # Write the updated content back to the file
+        with open(selected_file, 'w', encoding='utf-8') as file:
+            file.writelines('\n'.join(updated_lines) + '\n')
+
 
 # JavaScript code to add the underline marker
 underline_js = """
@@ -74,15 +87,26 @@ def main():
             # Include JavaScript with the appropriate line number
             # st.components.v1.html(underline_js.replace("{line_number}", str(line_number)).replace("{selected_file}", selected_file), height=0)
 
-            file_parser = FileParser(os.path.join(SOURCE_DIR, selected_file))
+            file_path = os.path.join(SOURCE_DIR, selected_file)
+            file_parser = FileParser(file_path)
             line_numbers = file_parser.get_errors_from_file()
             selected_error = st.sidebar.selectbox("Choose a error", line_numbers.keys())
             if selected_error:
-                code_block, line_number, char_number, error_msg = line_numbers[selected_error]
+                code_block, line_number, char_number, error_msg, block_start_index, block_end_index = line_numbers[selected_error]
                 solver = ErrorsSolver()
                 correction = solver.get_error_correction(code_block, line_number, char_number, error_msg)
                 st.sidebar.subheader(error_msg)
                 st.sidebar.code(correction, language='python')
+                # Button for applying the proposed changes.
+                sidebar_button = st.sidebar.button("Apply change", key="apply_change")
+                if sidebar_button:
+                    apply_change_to_file(file_path, block_start_index, block_end_index, correction)
+                    print(file_path)
+                    print(block_start_index)
+                    print(block_end_index)
+                    print(code_block)
+                    st.experimental_rerun()
+                
 
             # Ace editor for displaying the file content with syntax highlighting
             st.subheader("Source Code")
